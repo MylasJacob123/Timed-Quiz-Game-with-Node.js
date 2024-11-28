@@ -21,7 +21,7 @@ const quizQuestions = [
   {
     question: "What is a group of Pandas known as?",
     answer: "An embarrassment",
-  }
+  },
 ];
 
 let score = 0;
@@ -38,36 +38,46 @@ function askQuestion() {
     console.log(`\nQuestion ${currentQuestion + 1}: ${questionObj.question}`);
     console.log(`You have ${timeLeft} seconds to answer...`);
 
+    let questionAnswered = false;
+
     const questionInterval = setInterval(() => {
-      timeLeft--;
-      totalTimeLeft--;
       if (timeLeft > 0 && totalTimeLeft > 0) {
-        console.log(`Time remaining for this question: ${timeLeft} seconds`);
-      } else if (timeLeft === 0 || totalTimeLeft === 0) {
+        console.log(`Time remaining: ${timeLeft} seconds`);
+        timeLeft--;
+        totalTimeLeft--;
+      } else {
         clearInterval(questionInterval);
-        console.log(
-          `Time's up for this question! Moving to the next question.`
-        );
+        if (!questionAnswered) {
+          console.log(`\nTime's up for this question! Moving to the next question.`);
+        }
         currentQuestion++;
         askQuestion();
       }
     }, 1000);
 
-    const userAnswer = readlineSync.question("\nEnter your answer: ");
+    let userAnswer = readlineSync.question("\nEnter your answer: ").trim();
+    if (userAnswer !== "") {
+      questionAnswered = true;
+      clearInterval(questionInterval);
 
-    clearInterval(questionInterval); 
-    if (userAnswer.toLowerCase() === questionObj.answer.toLowerCase()) {
-      score++;
-      console.log("Correct!");
-    } else {
-      console.log(`Wrong! The correct answer was: ${questionObj.answer}`);
-    }
+      if (userAnswer.toLowerCase() === questionObj.answer.toLowerCase()) {
+        score++;
+        console.log("Correct!");
+      } else {
+        console.log(`Wrong! The correct answer was: ${questionObj.answer}`);
+      }
 
-    currentQuestion++;
-    if (currentQuestion < quizQuestions.length && totalTimeLeft > 0) {
-      askQuestion(); 
+      currentQuestion++;
+      if (currentQuestion < quizQuestions.length && totalTimeLeft > 0) {
+        askQuestion();
+      } else {
+        endQuiz();
+      }
     } else {
-      endQuiz(); 
+      console.log("Invalid input. Moving to the next question.");
+      clearInterval(questionInterval);
+      currentQuestion++;
+      askQuestion();
     }
   }
 }
@@ -75,6 +85,14 @@ function askQuestion() {
 function endQuiz() {
   console.log("\nThe quiz has ended!");
   console.log(`Final score: ${score}/${quizQuestions.length}`);
+  
+  const passThreshold = quizQuestions.length / 2;
+  if (score >= passThreshold) {
+    console.log("Pass");
+  } else {
+    console.log("Fail");
+  }
+
   process.exit();
 }
 
@@ -82,7 +100,7 @@ const totalQuizTimer = setInterval(() => {
   if (totalTimeLeft <= 0) {
     clearInterval(totalQuizTimer);
     console.log("\nTime's up! The quiz has ended.");
-    endQuiz(); 
+    endQuiz();
   }
 }, 1000);
 
